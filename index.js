@@ -18,21 +18,35 @@ async function run() {
   try {
     await client.connect();
     const bookCollection = client.db("bookly").collection("books");
-    
-    app.get('/book', async (req, res)  => {
-        const query = {};
-        const cursor = bookCollection.find(query);
-        const books = await cursor.toArray();
-        res.send(books);
-    });
-    
-    app.get('/book/:id', async (req, res)  => {
-        const id = req.params.id;
-        const query = {_id: ObjectId(id)};
-        const book = await bookCollection.findOne(query);
-        res.send(book);
+
+    app.get("/book", async (req, res) => {
+      const query = {};
+      const cursor = bookCollection.find(query);
+      const books = await cursor.toArray();
+      res.send(books);
     });
 
+    app.get("/book/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const book = await bookCollection.findOne(query);
+      res.send(book);
+    });
+
+    // Add
+    app.post("/book", async (req, res) => {
+      const newBook = req.body;
+      const result = await bookCollection.insertOne(newBook);
+      res.send(result);
+    });
+
+    // Delete
+    app.delete("/book/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await bookCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
     // await client.close();
   }
