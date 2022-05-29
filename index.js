@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId} = require("mongodb");
 
 //  middleware
 app.use(cors());
@@ -11,14 +11,33 @@ app.use(express.json());
 
 
 
-const uri = "mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.26oam.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.26oam.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(err => {
-  const collection = client.db("test").collection("devices");
-  console.log('Bookly warehouse db connected');
-  // perform actions on the collection object
-  client.close();
-});
+
+async function run() {
+  try {
+    await client.connect();
+    const bookCollection = client.db("bookly").collection("books");
+    
+    app.get('/book', async (req, res)  => {
+        const query = {};
+        const cursor = bookCollection.find(query);
+        const books = await cursor.toArray();
+        res.send(books);
+    });
+    
+    app.get('/book/:id', async (req, res)  => {
+        const id = req.params.id;
+        const query = {_id: ObjectId(id)};
+        const book = await bookCollection.findOne(query);
+        res.send(book);
+    });
+
+  } finally {
+    // await client.close();
+  }
+}
+run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
