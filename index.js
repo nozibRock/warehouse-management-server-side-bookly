@@ -33,12 +33,12 @@ async function run() {
       res.send(book);
     });
 
-    // Add
-    app.post("/book", async (req, res) => {
+    // POST
+    app.post('/book', async(req, res) => {
       const newBook = req.body;
       const result = await bookCollection.insertOne(newBook);
       res.send(result);
-    });
+    })
 
     // Delete
     app.delete("/book/:id", async (req, res) => {
