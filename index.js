@@ -47,7 +47,24 @@ async function run() {
       const result = await bookCollection.deleteOne(query);
       res.send(result);
     });
-  } finally {
+
+    // Update Quantity
+    app.put("/updateProduct/:id", async (req, res) => {
+      const id = req.params.id;
+      const newQuantity = await req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+
+      const updateQuantity = {
+        $set: {
+          quantity: newQuantity.quantity,
+        },
+      };
+      const result = await bookCollection.updateOne( filter, updateQuantity, options);
+      res.send(result);
+    });
+  } 
+  finally {
     // await client.close();
   }
 }
