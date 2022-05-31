@@ -40,13 +40,13 @@ async function run() {
       res.send(result);
     })
 
-    // Delete
-    app.delete("/book/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const result = await bookCollection.deleteOne(query);
-      res.send(result);
-    });
+    //DELETE
+    app.delete('/book/:id', async(req, res) => {
+      const id = req.params.id
+      const query = {_id: ObjectId(id)}
+      const result = await bookCollection.deleteOne(query)
+      res.send(result)
+    })
 
     // Update Quantity
     app.put("/updateProduct/:id", async (req, res) => {
