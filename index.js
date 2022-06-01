@@ -1,19 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const app = express();
-const { MongoClient, ServerApiVersion, ObjectId} = require("mongodb");
+
 
 //  middleware
 app.use(cors());
 app.use(express.json());
 
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.26oam.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+function verifyToken(req, res, next) {
+  //getting token from header
+  const tokenInfo = req.headers.authorization;
+  console.log('Inside verifyToken',tokenInfo);
+  const token = tokenInfo?.split(" ")[1];
+  if (!tokenInfo) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({
+        message: "Forbidden access",
+      });
+    }
+    console.log('decoded', decoded);
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -23,7 +42,7 @@ async function run() {
     // Auth
     // JWT
     // token while logging in
-    app.post('/login', (req, res) => {
+    app.post('/signIn', (req, res) => {
       const user = req.body;
       const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '1d'
@@ -81,12 +100,21 @@ async function run() {
       res.send(result);
     });
 
-    
+    //product list, when token is verified
+    app.get("/productList", verifyToken, async (req, res) => {
+      const decodedEmail = req.decoded.email;
+      const email = req.query.email;
+      if (decodedEmail === email) {
+        const products = await bookCollection.find({ email }).toArray();
+        res.send(products);
+      } else {
+        res.status(403).send({
+          message: "you are forbidden!",
+        });
+      }
+    });
 
-    
-
-
-    app.post("/addProduct", async (req, res) => {
+    app.post("/addBook", async (req, res) => {
       const productInfo = req.body;
       const result = await bookCollection.insertOne(productInfo);
       res.send({ success: "Successful" });
