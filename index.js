@@ -17,16 +17,13 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyToken(req, res, next) {
   //getting token from header
   const tokenInfo = req.headers.authorization;
-  console.log('Inside verifyToken',tokenInfo);
   const token = tokenInfo?.split(" ")[1];
   if (!tokenInfo) {
     return res.status(401).send({ message: "Unauthorized Access" });
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
     if (err) {
-      return res.status(403).send({
-        message: "Forbidden access",
-      });
+      return res.status(403).send({ message: "Forbidden access" });
     }
     console.log('decoded', decoded);
     req.decoded = decoded;
@@ -104,13 +101,13 @@ async function run() {
     app.get("/productList", verifyToken, async (req, res) => {
       const decodedEmail = req.decoded.email;
       const email = req.query.email;
-      if (decodedEmail === email) {
-        const products = await bookCollection.find({ email }).toArray();
+      if (email === decodedEmail) {
+        const query = {email : email};
+        const cursor = bookCollection.find(query);
+        const products = await cursor.toArray();
         res.send(products);
       } else {
-        res.status(403).send({
-          message: "you are forbidden!",
-        });
+        res.status(403).send({message: "forbidden access"});
       }
     });
 
