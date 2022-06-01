@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const app = express();
@@ -19,6 +20,18 @@ async function run() {
     await client.connect();
     const bookCollection = client.db("bookly").collection("books");
 
+    // Auth
+    // JWT
+    // token while logging in
+    app.post('/login', (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1d'
+      });
+      res.send({ accessToken });
+    });
+
+    // book API
     app.get("/book", async (req, res) => {
       const query = {};
       const cursor = bookCollection.find(query);
@@ -34,19 +47,19 @@ async function run() {
     });
 
     // POST
-    app.post('/book', async(req, res) => {
+    app.post("/book", async (req, res) => {
       const newBook = req.body;
       const result = await bookCollection.insertOne(newBook);
       res.send(result);
-    })
+    });
 
     //DELETE
-    app.delete('/book/:id', async(req, res) => {
-      const id = req.params.id
-      const query = {_id: ObjectId(id)}
-      const result = await bookCollection.deleteOne(query)
-      res.send(result)
-    })
+    app.delete("/book/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await bookCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Update Quantity
     app.put("/updateProduct/:id", async (req, res) => {
@@ -60,8 +73,23 @@ async function run() {
           quantity: newQuantity.quantity,
         },
       };
-      const result = await bookCollection.updateOne( filter, updateQuantity, options);
+      const result = await bookCollection.updateOne(
+        filter,
+        updateQuantity,
+        options
+      );
       res.send(result);
+    });
+
+    
+
+    
+
+
+    app.post("/addProduct", async (req, res) => {
+      const productInfo = req.body;
+      const result = await bookCollection.insertOne(productInfo);
+      res.send({ success: "Successful" });
     });
   } 
   finally {
