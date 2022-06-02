@@ -128,6 +128,10 @@ app.get('/', (req, res) => {
     res.send('Running Warehouse Server')
 })
 
+app.get('/hero', (req, res) => {
+    res.send('Hero meets heroku');
+})
+
 app.listen(port, (req, res) => {
     console.log('Listening to port', port)
 })
