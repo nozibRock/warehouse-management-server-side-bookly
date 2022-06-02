@@ -1,18 +1,21 @@
-const express = require('express');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
+const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require('dotenv').config();
+require("dotenv").config();
 const port = process.env.PORT || 5000;
 const app = express();
-
 
 //  middleware
 app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.26oam.mongodb.net/?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
 
 function verifyToken(req, res, next) {
   //getting token from header
@@ -25,7 +28,7 @@ function verifyToken(req, res, next) {
     if (err) {
       return res.status(403).send({ message: "Forbidden access" });
     }
-    console.log('decoded', decoded);
+    console.log("decoded", decoded);
     req.decoded = decoded;
     next();
   });
@@ -39,10 +42,10 @@ async function run() {
     // Auth
     // JWT
     // token while logging in
-    app.post('/signIn', (req, res) => {
+    app.post("/signIn", (req, res) => {
       const user = req.body;
       const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '1d'
+        expiresIn: "1d",
       });
       res.send({ accessToken });
     });
@@ -102,12 +105,12 @@ async function run() {
       const decodedEmail = req.decoded.email;
       const email = req.query.email;
       if (email === decodedEmail) {
-        const query = {email : email};
+        const query = { email: email };
         const cursor = bookCollection.find(query);
         const products = await cursor.toArray();
         res.send(products);
       } else {
-        res.status(403).send({message: "forbidden access"});
+        res.status(403).send({ message: "forbidden access" });
       }
     });
 
@@ -116,22 +119,20 @@ async function run() {
       const result = await bookCollection.insertOne(productInfo);
       res.send({ success: "Successful" });
     });
-  } 
-  finally {
+  } finally {
     // await client.close();
   }
 }
 run().catch(console.dir);
 
+app.get("/", (req, res) => {
+  res.send("Running Warehouse Server");
+});
 
-app.get('/', (req, res) => {
-    res.send('Running Warehouse Server')
-})
-
-app.get('/hero', (req, res) => {
-    res.send('Hero meets heroku');
-})
+app.get("/hero", (req, res) => {
+  res.send("Hero meets heroku");
+});
 
 app.listen(port, (req, res) => {
-    console.log('Listening to port', port)
-})
+  console.log("Listening to port", port);
+});
